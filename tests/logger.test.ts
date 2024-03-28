@@ -1,6 +1,7 @@
+import { describe, it } from "bun:test";
 import Elysia from "elysia";
+
 import { logger } from "../src";
-import { describe, it, expect } from "bun:test";
 
 const consoleLogInterceptor = () => {
   const logs: string[] = [];
@@ -62,5 +63,41 @@ describe("logger middleware", () => {
         })
       )
       .then((res) => res.json());
+  });
+});
+
+describe("logger middleware for all HTTP methods", () => {
+  it("logs each method in correct color within a single test", async () => {
+    consoleLogInterceptor();
+    const app = new Elysia().use(logger());
+
+    const routeHandler = () => ({
+      status: 200,
+      body: JSON.stringify({ message: "ok" }),
+    });
+
+    app.get("/test-path", routeHandler);
+    app.post("/test-path", routeHandler);
+    app.put("/test-path", routeHandler);
+    app.delete("/test-path", routeHandler);
+    app.patch("/test-path", routeHandler);
+    app.options("/test-path", routeHandler);
+    app.head("/test-path", routeHandler);
+
+    const methods = [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "PATCH",
+      "OPTIONS",
+      "HEAD",
+    ];
+
+    for (const method of methods) {
+      await app
+        .handle(new Request(`http://localhost/test-path`, { method }))
+        .then((res) => res.json());
+    }
   });
 });

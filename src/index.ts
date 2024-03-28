@@ -23,7 +23,7 @@ interface Options {
 export const logger = (options?: Options) => {
   const { write } = options?.writer || consoleWriter;
   return new Elysia({
-    name: "@Lenoux01/lean-logger",
+    name: "lean-logger",
   })
     .onRequest((ctx) => {
       ctx.store = { ...ctx.store, beforeTime: process.hrtime.bigint() };
