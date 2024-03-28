@@ -1,6 +1,6 @@
-# lean-logger
+# lean-logs
 
-lean-logger is a lightweight, efficient logging tool designed specifically for use with Bun and Elysia in Node.js environments. By offering a straightforward API and customizable log levels, Lean Logger aims to enhance debugging and monitoring in development and production without introducing significant overhead.
+lean-logs is a lightweight, efficient logging tool designed specifically for use with Bun and Elysia in Node.js environments. By offering a straightforward API and customizable log levels, Lean Logger aims to enhance debugging and monitoring in development and production without introducing significant overhead.
 
 ## Features
 
