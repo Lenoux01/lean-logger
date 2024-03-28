@@ -1,7 +1,11 @@
 {
   "name": "lean-logs",
+  "version": "1.0.0",
   "description": "Versatile logger for Bun's Elysia framework",
-  "version": "1.0.50",
+  "main": "src/index.ts",
+  "directories": {
+    "test": "tests"
+  },
   "scripts": {
     "test": "bun test"
   },
@@ -9,12 +13,6 @@
     "type": "git",
     "url": "git+https://github.com/Lenoux01/lean-logs.git"
   },
-  "author": "Lennard Finsterbusch",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Lenoux01/lean-logs/issues"
-  },
-  "homepage": "https://github.com/Lenoux01/lean-logs#readme",
   "keywords": [
     "logging",
     "elysia",
@@ -25,12 +23,15 @@
     "elysia",
     "middleware"
   ],
+  "author": "Lennard Finsterbusch",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Lenoux01/lean-logs/issues"
+  },
+  "homepage": "https://github.com/Lenoux01/lean-logs#readme",
   "dependencies": {
-    "elysia": "latest",
+    "@elysiajs/eden": "^1.0.8",
+    "elysia": "^1.0.9",
     "picocolors": "^1.0.0"
-  },
-  "devDependencies": {
-    "bun-types": "latest"
-  },
-  "module": "src/index.ts"
+  }
 }
