@@ -1,6 +1,6 @@
 {
-  "name": "lean-logs",
-  "version": "1.0.0",
+  "name": "@lenoux01/lean-logs",
+  "version": "1.0.1",
   "description": "Versatile logger for Bun's Elysia framework",
   "main": "src/index.ts",
   "directories": {
@@ -14,7 +14,7 @@
     "url": "git+https://github.com/Lenoux01/lean-logs.git"
   },
   "keywords": [
-    "logging",
+   "logging",
     "elysia",
     "elysiajs",
     "web",
