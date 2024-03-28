@@ -1,0 +1,26 @@
+{
+  "name": "lean-logger",
+  "description": "Versatile logger for Bun's Elysia framework",
+  "version": "1.0.50",
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "elysia": "latest",
+    "picocolors": "^1.0.0"
+  },
+  "keywords": [
+    "logging",
+    "elysia",
+    "elysiajs",
+    "web",
+    "logger",
+    "middleware",
+    "elysia",
+    "middleware"
+  ],
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "module": "src/index.ts"
+}
