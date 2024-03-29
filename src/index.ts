@@ -20,15 +20,12 @@ interface Options {
   writer?: Writer;
 }
 
-export const logger = (options?: Options) => {
+export const logger = (app: Elysia, options?: Options) => {
   const { write } = options?.writer || consoleWriter;
-  return new Elysia({
-    name: "lean-logs",
-  })
+  return app
     .onRequest((ctx) => {
       ctx.store = { ...ctx.store, beforeTime: process.hrtime.bigint() };
     })
-
     .onBeforeHandle({ as: "global" }, (ctx) => {
       ctx.store = { ...ctx.store, beforeTime: process.hrtime.bigint() };
     })

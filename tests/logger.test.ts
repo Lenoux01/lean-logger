@@ -21,12 +21,7 @@ describe("logger middleware", () => {
   it("logs method, path, and response time", async () => {
     consoleLogInterceptor();
 
-    const app = new Elysia().use(
-      logger({
-        logIP: false,
-        writer: { write: console.log },
-      })
-    );
+    const app = new Elysia().use(logger);
 
     app.get("/test-path", () => ({
       status: 200,
@@ -40,12 +35,9 @@ describe("logger middleware", () => {
   it("logs with IP", async () => {
     consoleLogInterceptor();
 
-    const app = new Elysia().use(
-      logger({
-        logIP: true,
-        writer: { write: console.log },
-      })
-    );
+    const app = new Elysia();
+
+    app.use(logger(app, { logIP: true, writer: { write: console.log } }));
 
     app.get("/test-path", () => {
       return {
@@ -69,7 +61,7 @@ describe("logger middleware", () => {
 describe("logger middleware for all HTTP methods", () => {
   it("logs each method in correct color within a single test", async () => {
     consoleLogInterceptor();
-    const app = new Elysia().use(logger());
+    const app = new Elysia().use(logger);
 
     const routeHandler = () => ({
       status: 200,
