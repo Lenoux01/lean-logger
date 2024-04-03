@@ -1,6 +1,6 @@
 {
   "name": "@lenoux01/lean-logs",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Versatile and colorful logger for Bun's Elysia framework",
   "main": "src/index.ts",
   "directories": {

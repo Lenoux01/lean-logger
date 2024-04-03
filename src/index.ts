@@ -20,7 +20,18 @@ interface Options {
   writer?: Writer;
 }
 
-export const logger = (app: Elysia, options?: Options) => {
+const logWebSocketMessage = (message: string | object) => {
+  let logMessage = `(${pc.green("WS")}) |`;
+  if (typeof message === "object") {
+    logMessage += ` ${JSON.stringify(message, null, 2)}`;
+  }
+  if (typeof message === "string") {
+    logMessage += ` ${message}`;
+  }
+  console.log(logMessage);
+};
+
+const logger = (app: Elysia, options?: Options) => {
   const { write } = options?.writer || consoleWriter;
   return app
     .onRequest((ctx) => {
@@ -30,6 +41,14 @@ export const logger = (app: Elysia, options?: Options) => {
       ctx.store = { ...ctx.store, beforeTime: process.hrtime.bigint() };
     })
     .onAfterHandle({ as: "global" }, ({ request, store, response }) => {
+      if (request.headers.get("Upgrade") === "websocket") {
+        write(
+          `(${pc.green("WS")}) ${
+            new URL(request.url).pathname
+          } | Websocket connection opened`
+        );
+        return;
+      }
       const logStr: string[] = [];
       if (options !== undefined && options.logIP) {
         if (request.headers.get("X-Forwarded-For")) {
@@ -80,3 +99,5 @@ export const logger = (app: Elysia, options?: Options) => {
       write(logStr.join(" "));
     });
 };
+
+export { logger, logWebSocketMessage };

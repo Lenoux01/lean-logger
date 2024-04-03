@@ -1,7 +1,7 @@
 import { describe, it } from "bun:test";
-import Elysia from "elysia";
+import Elysia, { t } from "elysia";
 
-import { logger } from "../src";
+import { logWebSocketMessage, logger } from "../src";
 
 const consoleLogInterceptor = () => {
   const logs: string[] = [];
@@ -91,5 +91,36 @@ describe("logger middleware for all HTTP methods", () => {
         .handle(new Request(`http://localhost/test-path`, { method }))
         .then((res) => res.json());
     }
+  });
+});
+
+describe("logger middleware for websocket", () => {
+  it("logs websocket connection", async () => {
+    consoleLogInterceptor();
+    const app = new Elysia().use(logger);
+
+    app.ws("/test-path", {
+      body: t.Object({
+        message: t.String(),
+        number: t.Number(),
+      }),
+      open: () => {
+        console.log("ws opened");
+      },
+      message: (ws, message) => {
+        logWebSocketMessage(message);
+      },
+      close: () => {
+        console.log("ws closed");
+      },
+    })
+
+     const ws = new WebSocket("ws://localhost/test-path");
+
+    const client = await app.handle(
+      new Request("http://localhost/test-path", {
+        headers: { Upgrade: "websocket" },
+      })
+    );
   });
 });
