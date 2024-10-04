@@ -1,5 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+server.log
+
 # dependencies
 /node_modules
 /.pnp
@@ -7,6 +9,9 @@
 
 # testing
 /coverage
+
+# exlucde bun lock
+bun.lockb
 
 # next.js
 /.next/

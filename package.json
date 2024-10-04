@@ -1,18 +1,24 @@
 {
   "name": "@lenoux01/lean-logs",
-  "version": "1.0.7",
-  "description": "Versatile and colorful logger for Bun's Elysia framework",
-  "main": "src/index.ts",
-  "directories": {
-    "test": "tests"
-  },
-  "scripts": {
-    "test": "bun test"
-  },
+  "version": "1.0.8",
+  "author": "Lennard Finsterbusch",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Lenoux01/lean-logs.git"
   },
+  "main": "src/index.ts",
+  "dependencies": {
+    "elysia": "^1.1.18",
+    "picocolors": "^1.1.0"
+  },
+  "bugs": {
+    "url": "https://github.com/Lenoux01/lean-logs/issues"
+  },
+  "description": "Versatile and colorful logger for Bun's Elysia framework",
+  "directories": {
+    "test": "tests"
+  },
+  "homepage": "https://github.com/Lenoux01/lean-logs#readme",
   "keywords": [
     "logging",
     "elysia",
@@ -23,17 +29,11 @@
     "elysia",
     "middleware"
   ],
-  "author": "Lennard Finsterbusch",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Lenoux01/lean-logs/issues"
-  },
-  "homepage": "https://github.com/Lenoux01/lean-logs#readme",
-  "dependencies": {
-    "elysia": "^1.0.9",
-    "picocolors": "^1.0.0"
+  "scripts": {
+    "test": "bun test"
   },
   "devDependencies": {
-    "@types/bun": "^1.0.11"
+    "bun-types": "^1.1.29"
   }
 }

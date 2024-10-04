@@ -1,38 +1,29 @@
+// Path: src/index.ts
 import Elysia from "elysia";
 import * as pc from "picocolors";
 import process from "process";
+import fs from "fs";
 import { getMethodStringColor } from "./getMethodStringColor";
 import { getConvertedDuration } from "./getConvertedDuration";
 import { ApiResponse } from "./apiResponse";
 
-interface Writer {
-  write: (message: string) => void;
-}
+const logFilePath = "server.log";
 
-const consoleWriter: Writer = {
-  write(message: string) {
-    console.log(message);
-  },
+const stripAnsiCodes = (str: string) => str.replace(/\u001b\[\d+m/g, "");
+
+const writeToFile = (message: string) => {
+  fs.appendFileSync(logFilePath, stripAnsiCodes(message) + "\n");
 };
 
-interface Options {
-  logIP?: boolean;
-  writer?: Writer;
-}
-
-const logWebSocketMessage = (message: string | object) => {
-  let logMessage = `(${pc.green("WS")}) |`;
-  if (typeof message === "object") {
-    logMessage += ` ${JSON.stringify(message, null, 2)}`;
+const getCallerIP = (request: Request): string => {
+  const forwardedFor = request.headers.get("X-Forwarded-For");
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0].trim();
   }
-  if (typeof message === "string") {
-    logMessage += ` ${message}`;
-  }
-  console.log(logMessage);
+  return new URL(request.url).hostname;
 };
 
-const logger = (app: Elysia, options?: Options) => {
-  const { write } = options?.writer || consoleWriter;
+export const logger = (app: Elysia, options?: { logIP?: boolean }) => {
   return app
     .onRequest((ctx) => {
       ctx.store = { ...ctx.store, beforeTime: process.hrtime.bigint() };
@@ -42,19 +33,20 @@ const logger = (app: Elysia, options?: Options) => {
     })
     .onAfterHandle({ as: "global" }, ({ request, store, response }) => {
       if (request.headers.get("Upgrade") === "websocket") {
-        write(
-          `(${pc.green("WS")}) ${
-            new URL(request.url).pathname
-          } | Websocket connection opened`
-        );
+        const message = `(${pc.green("WS")}) ${
+          new URL(request.url).pathname
+        } | Websocket connection opened`;
+        console.log(message);
+        writeToFile(message);
         return;
       }
       const logStr: string[] = [];
-      if (options !== undefined && options.logIP) {
-        if (request.headers.get("X-Forwarded-For")) {
-          logStr.push(`[${pc.cyan(request.headers.get("X-Forwarded-For"))}]`);
-        }
+
+      if (options?.logIP) {
+        const callerIP = getCallerIP(request);
+        logStr.push(`[${pc.cyan(callerIP)}]`);
       }
+
       const apiResponse = response as ApiResponse<any, any>;
       const statusCode = apiResponse.status
         ? `(${pc.green(apiResponse.status.toString())})`
@@ -72,10 +64,17 @@ const logger = (app: Elysia, options?: Options) => {
         apiResponse && apiResponse.message ? `|  ${apiResponse.message}` : "";
       logStr.push(responseMessage);
 
-      write(logStr.join(" "));
+      const logMessage = logStr.join(" ");
+      console.log(logMessage);
+      writeToFile(logMessage);
     })
     .onError({ as: "global" }, ({ request, error, store }) => {
       const logStr: string[] = [];
+
+      if (options?.logIP) {
+        const callerIP = getCallerIP(request);
+        logStr.push(`[${pc.cyan(callerIP)}]`);
+      }
 
       logStr.push(pc.red(getMethodStringColor(request.method)));
 
@@ -96,8 +95,20 @@ const logger = (app: Elysia, options?: Options) => {
 
       logStr.push(getConvertedDuration(beforeTime));
 
-      write(logStr.join(" "));
+      const logMessage = logStr.join(" ");
+      console.log(logMessage);
+      writeToFile(logMessage);
     });
 };
 
-export { logger, logWebSocketMessage };
+export const logWebSocketMessage = (message: string | object) => {
+  let logMessage = `(${pc.green("WS")}) |`;
+  if (typeof message === "object") {
+    logMessage += ` ${JSON.stringify(message, null, 2)}`;
+  }
+  if (typeof message === "string") {
+    logMessage += ` ${message}`;
+  }
+  console.log(logMessage);
+  writeToFile(logMessage);
+};
