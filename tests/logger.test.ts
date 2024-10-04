@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import Elysia, { t } from "elysia";
 import fs from "fs";
-import { logWebSocketMessage, logger } from "../src";
+import {  logger, logWebSocket } from "../src";
 
 const logFilePath = "server.log";
 
@@ -156,7 +156,7 @@ describe("logger middleware for websocket", () => {
         console.log("ws opened");
       },
       message: (ws, message) => {
-        logWebSocketMessage(message);
+        logWebSocket(message);
       },
       close: () => {
         console.log("ws closed");
@@ -176,7 +176,7 @@ describe("logger middleware for websocket", () => {
 
     // Simulate a WebSocket message
     const sampleMessage = { message: "Hello, WebSocket!", number: 42 };
-    logWebSocketMessage(sampleMessage);
+    logWebSocket(sampleMessage);
 
     const strippedMessageLog = stripAnsiCodes(logs[1]);
     expect(strippedMessageLog).toContain("(WS) |");
