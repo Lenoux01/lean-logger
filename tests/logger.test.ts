@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import Elysia, { t } from "elysia";
 import fs from "fs";
-import {  logger, logWebSocket } from "../src";
+import { logger, logWebSocket } from "../src";
 
 const logFilePath = "server.log";
 
@@ -42,7 +42,7 @@ describe("logger middleware", () => {
   it("logs method, path, and response time to console and file", async () => {
     const logs = consoleLogInterceptor();
 
-    const app = new Elysia().use(logger);
+    const app = new Elysia().use(logger());
 
     app.get("/test-path", () => ({
       status: 200,
@@ -65,9 +65,7 @@ describe("logger middleware", () => {
   it("logs with IP to console and file", async () => {
     const logs = consoleLogInterceptor();
 
-    const app = new Elysia();
-
-    app.use(logger(app, { logIP: true }));
+    const app = new Elysia().use(logger({ logIP: true }));
 
     app.get("/test-path", () => ({
       status: 200,
@@ -95,7 +93,7 @@ describe("logger middleware", () => {
 describe("logger middleware for all HTTP methods", () => {
   it("logs each method in correct color within a single test to console and file", async () => {
     const logs = consoleLogInterceptor();
-    const app = new Elysia().use(logger);
+    const app = new Elysia().use(logger());
 
     const routeHandler = () => ({
       status: 200,
@@ -145,7 +143,7 @@ describe("logger middleware for all HTTP methods", () => {
 describe("logger middleware for websocket", () => {
   it("logs websocket connection and messages to console and file", async () => {
     const logs = consoleLogInterceptor();
-    const app = new Elysia().use(logger);
+    const app = new Elysia().use(logger());
 
     app.ws("/test-path", {
       body: t.Object({
