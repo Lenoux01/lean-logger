@@ -1,14 +1,12 @@
 // Path: tests/logger.test.ts
-import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import Elysia, { t } from "elysia";
+import { afterEach, beforeEach } from "bun:test";
 import fs from "fs";
 import path from "path";
-import { logger, logWebSocket } from "../src";
 
-const logDir = "logs";
-const logFilePath = path.join(logDir, "server.log");
+export const logDir = "logs";
+export const logFilePath = path.join(logDir, "server.log");
 
-const consoleLogInterceptor = () => {
+export const consoleLogInterceptor = () => {
   const logs: string[] = [];
   const originalLog = console.log;
   console.log = (...args: any[]) => {
@@ -22,223 +20,23 @@ const consoleLogInterceptor = () => {
   return logs;
 };
 
-const stripAnsiCodes = (str: string) => str.replace(/\u001b\[\d+m/g, "");
+export const stripAnsiCodes = (str: string) => str.replace(/\u001b\[\d+m/g, "");
 
-const readLogFile = () => {
+export const readLogFile = () => {
   return fs.readFileSync(logFilePath, "utf-8");
 };
 
-describe("logger middleware", () => {
-  beforeEach(() => {
-    if (fs.existsSync(logFilePath)) {
-      fs.unlinkSync(logFilePath);
-    }
-    // Ensure the logs directory exists
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir, { recursive: true });
-    }
-  });
-
-  afterEach(() => {
-    if (fs.existsSync(logFilePath)) {
-      fs.unlinkSync(logFilePath);
-    }
-  });
-
-  it("logs method, path, and response time to console and file", async () => {
-    const logs = consoleLogInterceptor();
-
-    const app = new Elysia().use(logger());
-
-    app.get("/test-path", () => ({
-      status: 200,
-      body: JSON.stringify({ message: "ok" }),
-    }));
-
-    await app
-      .handle(new Request("http://localhost/test-path"))
-      .then((res) => res.json());
-
-    const strippedLog = stripAnsiCodes(logs[0]);
-    expect(strippedLog).toContain("GET /test-path");
-    expect(strippedLog).toContain("(200)");
-
-    const fileContent = readLogFile();
-    expect(fileContent).toContain("GET /test-path");
-    expect(fileContent).toContain("(200)");
-  });
-
-  it("logs with IP to console and file", async () => {
-    const logs = consoleLogInterceptor();
-
-    const app = new Elysia().use(logger({ logIP: true }));
-
-    app.get("/test-path", () => ({
-      status: 200,
-      body: JSON.stringify({ message: "ok" }),
-    }));
-
-    await app
-      .handle(
-        new Request("http://localhost/test-path", {
-          headers: {
-            "X-Forwarded-For": "127.0.0.1",
-          },
-        })
-      )
-      .then((res) => res.json());
-
-    const strippedLog = stripAnsiCodes(logs[0]);
-    expect(strippedLog).toContain("[127.0.0.1]");
-
-    const fileContent = readLogFile();
-    expect(fileContent).toContain("[127.0.0.1]");
-  });
+beforeEach(() => {
+  if (fs.existsSync(logFilePath)) {
+    fs.unlinkSync(logFilePath);
+  }
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
 });
 
-describe("logger middleware for all HTTP methods", () => {
-  it("logs each method in correct color within a single test to console and file", async () => {
-    const logs = consoleLogInterceptor();
-    const app = new Elysia().use(logger());
-
-    const routeHandler = () => ({
-      status: 200,
-      body: JSON.stringify({ message: "ok" }),
-    });
-
-    app.get("/test-path", routeHandler);
-    app.post("/test-path", routeHandler);
-    app.put("/test-path", routeHandler);
-    app.delete("/test-path", routeHandler);
-    app.patch("/test-path", routeHandler);
-    app.options("/test-path", routeHandler);
-    app.head("/test-path", routeHandler);
-
-    const methods = [
-      "GET",
-      "POST",
-      "PUT",
-      "DELETE",
-      "PATCH",
-      "OPTIONS",
-      "HEAD",
-    ];
-
-    for (const method of methods) {
-      await app
-        .handle(new Request(`http://localhost/test-path`, { method }))
-        .then((res) => res.json());
-    }
-
-    methods.forEach((method, index) => {
-      const strippedLog = stripAnsiCodes(logs[index]);
-      expect(strippedLog).toContain(method);
-      expect(strippedLog).toContain("/test-path");
-      expect(strippedLog).toContain("(200)");
-    });
-
-    const fileContent = readLogFile();
-    methods.forEach((method) => {
-      expect(fileContent).toContain(method);
-      expect(fileContent).toContain("/test-path");
-      expect(fileContent).toContain("(200)");
-    });
-  });
-});
-
-describe("logger middleware for websocket", () => {
-  it("logs websocket connection and messages to console and file", async () => {
-    const logs = consoleLogInterceptor();
-    const app = new Elysia().use(logger());
-
-    app.ws("/test-path", {
-      body: t.Object({
-        message: t.String(),
-        number: t.Number(),
-      }),
-      open: () => {
-        console.log("ws opened");
-      },
-      message: (ws, message) => {
-        logWebSocket(message);
-      },
-      close: () => {
-        console.log("ws closed");
-      },
-    });
-
-    await app.handle(
-      new Request("http://localhost/test-path", {
-        headers: { Upgrade: "websocket" },
-      })
-    );
-
-    const strippedLog = stripAnsiCodes(logs[0]);
-    expect(strippedLog).toContain(
-      "(WS) /test-path | Websocket connection opened"
-    );
-
-    // Simulate a WebSocket message
-    const sampleMessage = { message: "Hello, WebSocket!", number: 42 };
-    logWebSocket(sampleMessage);
-
-    const strippedMessageLog = stripAnsiCodes(logs[1]);
-    expect(strippedMessageLog).toContain("(WS) |");
-    expect(strippedMessageLog).toContain(
-      JSON.stringify(sampleMessage, null, 2)
-    );
-
-    const fileContent = readLogFile();
-    expect(fileContent).toContain(
-      "(WS) /test-path | Websocket connection opened"
-    );
-    expect(fileContent).toContain("(WS) |");
-    expect(fileContent).toContain(JSON.stringify(sampleMessage, null, 2));
-  });
-});
-
-describe("logger middleware with custom log path", () => {
-  const customLogDir = "custom_logs";
-  const customLogPath = path.join(customLogDir, "custom.log");
-
-  beforeEach(() => {
-    if (fs.existsSync(customLogPath)) {
-      fs.unlinkSync(customLogPath);
-    }
-    if (fs.existsSync(customLogDir)) {
-      fs.rmdirSync(customLogDir, { recursive: true });
-    }
-  });
-
-  afterEach(() => {
-    if (fs.existsSync(customLogPath)) {
-      fs.unlinkSync(customLogPath);
-    }
-    if (fs.existsSync(customLogDir)) {
-      fs.rmdirSync(customLogDir, { recursive: true });
-    }
-  });
-
-  it("logs to custom file path", async () => {
-    const logs = consoleLogInterceptor();
-
-    const app = new Elysia().use(logger({ logPath: customLogPath }));
-
-    app.get("/custom-test", () => ({
-      status: 200,
-      body: JSON.stringify({ message: "custom log test" }),
-    }));
-
-    await app
-      .handle(new Request("http://localhost/custom-test"))
-      .then((res) => res.json());
-
-    const strippedLog = stripAnsiCodes(logs[0]);
-    expect(strippedLog).toContain("GET /custom-test");
-    expect(strippedLog).toContain("(200)");
-
-    const fileContent = fs.readFileSync(customLogPath, "utf-8");
-    expect(fileContent).toContain("GET /custom-test");
-    expect(fileContent).toContain("(200)");
-  });
+afterEach(() => {
+  if (fs.existsSync(logFilePath)) {
+    fs.unlinkSync(logFilePath);
+  }
 });
